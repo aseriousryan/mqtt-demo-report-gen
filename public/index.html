@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MQTT Real-time Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+
+<body>
+    <h1>MQTT Real-time Data Graph Channel</h1>
+    <canvas id="myChart" width="400" height="200"></canvas>
+
+    <script>
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: [{
+                    label: 'ch1',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                },
+                {
+                    label: 'ch2',
+                    data: [],
+                    borderColor: 'rgba(192, 75, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                },
+                {
+                    label: 'ch3',
+                    data: [],
+                    borderColor: 'rgba(192, 192, 75, 1)',
+                    borderWidth: 1,
+                    fill: false
+                },
+                {
+                    label: 'ch4',
+                    data: [],
+                    borderColor: 'rgba(75, 75, 192, 1)',
+                    borderWidth: 1,
+                    fill: false
+                },
+                {
+                    label: 'ch5',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 75, 1)',
+                    borderWidth: 1,
+                    fill: false
+                }
+                ]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'realtime',
+                        realtime: {
+                            duration: 20000,
+                            refresh: 1000,
+                            delay: 1000,
+                            onRefresh: function (chart) {
+                                if (lastValues !== null) {
+                                    const now = Date.now();
+                                    chart.data.datasets[0].data.push({
+                                        x: now,
+                                        y: lastValues.ch1
+                                    });
+                                    chart.data.datasets[1].data.push({
+                                        x: now,
+                                        y: lastValues.ch2
+                                    });
+                                    chart.data.datasets[2].data.push({
+                                        x: now,
+                                        y: lastValues.ch3
+                                    });
+                                    chart.data.datasets[3].data.push({
+                                        x: now,
+                                        y: lastValues.ch4
+                                    });
+                                    chart.data.datasets[4].data.push({
+                                        x: now,
+                                        y: lastValues.ch5
+                                    });
+                                }
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        let lastValues = null;
+
+        const ws = new WebSocket("ws://localhost:3001");
+
+        ws.onmessage = (event) => {
+            console.log(event.data);
+            const data = JSON.parse(event.data);
+            lastValues = {
+                ch1: data.data.ch1,
+                ch2: data.data.ch2,
+                ch3: data.data.ch3,
+                ch4: data.data.ch4,
+                ch5: data.data.ch5
+            };
+        };
+
+        ws.onopen = () => {
+            console.log("WebSocket connection established");
+        };
+
+        ws.onclose = () => {
+            console.log("WebSocket connection closed");
+        };
+
+        ws.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+    </script>
+</body>
+
+</html>
