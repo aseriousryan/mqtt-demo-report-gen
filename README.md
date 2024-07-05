@@ -1,5 +1,5 @@
 Installation
 
-1. npm run install
-2. node realtime.js
-3. Open the HTML itself from browser
+1. npm install
+3. node realtime.js
+4. Open the HTML itself from browser
